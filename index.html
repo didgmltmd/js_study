@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>설문조사 페이지</title>
+</head>
+<body>
+    <div id="container">
+        <div id="header">  
+            <div id="header_container">
+                <div id="imgContainer">
+                    <img src="./logo.png" id="schoolLogo" />
+                </div>
+                <div id="header_title"> 
+                    설문조사 페이지
+                </div>
+            </div>
+
+        </div>
+        <div id="body">
+            <div id="body_left">
+                <div id="body_left_header">
+                    <div id="savedSurveyList"></div>
+                    <div id="plus">
+                        +
+                    </div>
+                </div>
+            </div>
+            <div id="body_right">
+                <div id="makeSurvey">
+                    <div id="makeSurvey_form"></div>
+                    <div id="addedQuestion"></div>
+                    <div id="addingQuestion"></div>
+                </div>
+                <div id="displaySurvey"></div>
+                <div id="displayResult"></div>
+                <div id="easterEgg"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const questionContainer = [];
+        const questionsArray = [];
+        const userData = [];
+        let radioIndex = 0;
+
+        const reset = () => {
+            const makeSurvey = document.getElementById('makeSurvey_form');
+            makeSurvey.innerHTML='';
+
+            const addedQuestion = document.getElementById("addedQuestion");
+            addedQuestion.innerHTML='';
+            
+            const addingQuestion = document.getElementById("addingQuestion");
+            addingQuestion.innerHTML='';
+
+            const displaySurvey = document.getElementById("displaySurvey");
+            displaySurvey.innerHTML = '';
+
+            const easterEgg = document.getElementById('easterEgg');
+            easterEgg.innerHTML = '';
+
+            const displayResult = document.getElementById('displayResult');
+            displayResult.innerHTML = '';
+        }
+
+        document.getElementById('plus').addEventListener('click',function(){
+            reset();
+            const makeSurvey = document.getElementById('makeSurvey_form');
+            
+            const form = document.createElement('form');
+            form.id = "makeSurvey_questionForm";
+            makeSurvey.appendChild(form);
+         
+
+            const inputTitle = document.createElement('input');
+            inputTitle.type = 'text';
+            inputTitle.id = "questionTitle";
+            inputTitle.placeholder = "제목을 입력하세요";
+            inputTitle.required = true;
+            form.appendChild(inputTitle);
+
+            form.appendChild(document.createElement("br")); // 줄바꿈 추가
+
+            const inputContainer = document.createElement('div');
+            inputContainer.id = "inputContainer";
+
+            const inputQuestion = document.createElement("input");
+            inputQuestion.type = "text";
+            inputQuestion.id = "question";
+            inputQuestion.placeholder = "질문을 입력하세요";
+            inputQuestion.required = true;
+            inputContainer.appendChild(inputQuestion);
+
+            
+
+            form.appendChild(inputContainer);
+
+            // 질문 추가 버튼 생성
+            const addQuestionButton = document.createElement("button");
+            addQuestionButton.type = "button";
+            addQuestionButton.id = "addQuestion";
+            addQuestionButton.innerText = "질문 추가";
+            addingQuestion.appendChild(addQuestionButton);
+
+            makeSurvey.appendChild(form);
+        });
+
+        document.body.addEventListener('click',function(event){
+            if(event.target && event.target.id === "addQuestion"){
+                const questionText = document.getElementById('question').value;
+   
+                const question = {
+                    text: questionText,
+                };
+                console.log(question);
+                questionsArray.push(question);
+                renderQuestions();
+                
+                document.getElementById('question').value = '';
+            }
+        })
+
+
+        function renderQuestions() {
+            const surveyQuestionsContainer = document.getElementById('addedQuestion');
+            surveyQuestionsContainer.innerHTML = '';
+
+            const surveyInputForm = document.createElement('form');
+            surveyInputForm.id='surveyForm'
+            surveyQuestionsContainer.appendChild(surveyInputForm);
+
+            questionsArray.forEach((question,index) => {
+                const questionWrapper = document.createElement('div');
+                questionWrapper.id='questionWrapper';
+                const label = document.createElement('label');
+                label.textContent = question.text;
+                questionWrapper.appendChild(label);
+
+
+                const options = ["그렇다", "보통이다", "아니다"];
+
+                // 라디오 그룹 생성
+                const radioGroup = document.createElement("div");
+                // radioGroup.classList.add("radio-group");
+
+                options.forEach((option, index) => {
+                    // input 요소 생성
+                    const radioInput = document.createElement("input");
+                    radioInput.type = "radio";
+                    radioInput.id = `option${index + 1}`;
+                    radioInput.name = `radio${radioIndex}`;
+                    console.log(radioIndex);
+                    radioInput.checked = index === 0; // 첫 번째 옵션 선택
+                    
+                    // label 요소 생성
+                    const label = document.createElement("label");
+                    label.id = "radioLabel";
+                    label.htmlFor = radioInput.id;
+                    label.textContent = option;
+                    
+                    // input과 label 추가
+                    radioGroup.appendChild(radioInput);
+                    radioGroup.appendChild(label);
+                });
+                radioIndex++;
+
+            // 라디오 그룹을 컨테이너에 추가
+            questionWrapper.appendChild(radioGroup); 
+
+            surveyInputForm.appendChild(questionWrapper);
+
+            if(index+1 == questionsArray.length){
+                const saveSurvey = document.createElement('input');
+                saveSurvey.type='submit';
+                saveSurvey.id = "saveSurveySubmit"
+                saveSurvey.value='설문저장';
+                questionWrapper.appendChild(saveSurvey);
+                }
+            })
+        }
+        function renderSavedQuestion(data){
+            //양식 초기화
+            reset();
+
+            const titleLabel = document.createElement('label');
+            titleLabel.id = "titleLabel";
+            titleLabel.required = true;
+            titleLabel.textContent = `설문조사 제목: ${data[0]}`;
+
+            displaySurvey.appendChild(titleLabel);
+
+            
+            const form = document.createElement('form');
+            form.id = "displayQuestionForm";
+            form.name = 'form';
+            
+            const surveyTitle = document.createElement('input');
+            surveyTitle.type = 'hidden';
+            surveyTitle.name = 'surveyTitle';
+            surveyTitle.value = data[0];
+            form.appendChild(surveyTitle);
+
+            data.slice(1).forEach((question, index) => {
+                const radioWrapper = document.createElement('div');
+                radioWrapper.id = "questionWrapper";
+
+                const displayQuestion = document.createElement('div');
+                displayQuestion.id = "displayQuestion";
+                displayQuestion.innerText=question.text;
+                radioWrapper.appendChild(displayQuestion);
+
+                const options = ["그렇다", "보통이다", "아니다"];
+
+                // 라디오 그룹 생성
+                const radioGroup = document.createElement("div");
+
+                options.forEach((option, index) => {
+                    // input 요소 생성
+                    const radioInput = document.createElement("input");
+                    radioInput.type = "radio";
+                    radioInput.id = `option${index + 1}`;
+                    radioInput.name = question.text;
+                    radioInput.value = parseInt(index);
+                    radioInput.checked = index === 0; // 첫 번째 옵션 선택
+                    
+                    // label 요소 생성
+                    const label = document.createElement("label");
+                    label.id = "radioLabel";
+                    label.htmlFor = radioInput.id;
+                    label.textContent = option;
+                    
+                    // input과 label 추가
+                    radioGroup.appendChild(radioInput);
+                    radioGroup.appendChild(label);
+                });
+                radioIndex++;
+                form.appendChild(radioWrapper);
+                radioWrapper.appendChild(radioGroup);
+            });
+            
+            const submitSurvey = document.createElement('input');
+            submitSurvey.type = 'submit';
+            submitSurvey.value = '제출';
+            submitSurvey.id = 'submitSurvey';
+            form.appendChild(submitSurvey);
+            displaySurvey.appendChild(form);
+
+            const resultForm = document.createElement('form');
+            resultForm.id = 'resultForm';
+            resultForm.name = 'resultForm';
+            
+            const showResultTitle = document.createElement('input');
+            showResultTitle.type = 'hidden';
+            showResultTitle.name = 'showResultTitle';
+            showResultTitle.value = data[0];
+
+            resultForm.appendChild(showResultTitle);
+            
+            const showResult = document.createElement('input');
+            showResult.type='submit';
+            showResult.value = '결과보기';
+            showResult.id = 'showResult';
+            resultForm.appendChild(showResult);
+            displaySurvey.appendChild(resultForm);
+        }
+
+        //설문 저장을 눌렀을떄 작동하는 코드
+        document.body.addEventListener('submit',function(event){
+            if(event.target.id === "surveyForm"){
+                event.preventDefault();
+
+                const questionTitle = document.getElementById('questionTitle').value;
+                
+                questionContainer.push([questionTitle,...questionsArray]);
+                document.getElementById('questionTitle').value = '';
+                questionsArray.splice(0,questionsArray.length);
+
+                const savedQuestion = document.getElementById('savedSurveyList');
+                savedQuestion.innerHTML = '';
+                renderQuestions(questionsArray);
+                questionContainer.forEach((question,index) => {
+                    const questionBox = document.createElement('div');
+                    questionBox.id='savedSurveyTitle';
+                    questionBox.innerHTML += `${question[0]}`;
+                    questionBox.onclick = function(){
+                      renderSavedQuestion(question);
+                    };
+                    savedQuestion.appendChild(questionBox);
+                })
+
+                reset();
+            }
+        })
+
+        //설문제출을 눌렀을때 데이터를 저장하는 코드
+        document.body.addEventListener('submit', function(event) {
+            if(event.target.id ==="displayQuestionForm"){
+                event.preventDefault();
+                
+                const formData = new FormData(event.target);
+                let isExist = false;
+                const dataContainer = [];
+                let title = '';
+
+                formData.forEach((value,key) => {
+                    if(key == "surveyTitle"){
+                        title = value;
+                    }
+                })
+
+                for(let i = 0;i<userData.length;i++){
+                    if(userData[i][0] == title){
+                        isExist = true;
+                    }
+                }
+
+                if(!isExist){
+                    const questionContainer = [];
+                    formData.forEach((value,key) => {
+                        if(key != "surveyTitle"){
+                            const option = [0,0,0];
+                            option[value]++;
+                            questionContainer.push([key,option]);
+                        }
+                    })
+                    userData.push([title,...questionContainer]);
+                }else{
+                    formData.forEach((value,key) => {
+                        if(key != "surveyTitle"){
+                            for(let i = 0;i<userData.length;i++){
+                                if(userData[i][0] == title){
+                                    for(let j = 1;j<userData[i].length;j++){
+                                        if(userData[i][j][0] == key){
+                                            userData[i][j][1][value]++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    })
+                }     
+                
+                console.log(userData);
+                
+                reset();
+                }
+        });
+
+        document.body.addEventListener('submit',function(event){
+            if(event.target.id == "resultForm"){
+                reset();
+                const displayResult = document.getElementById('displayResult');
+                const formData = new FormData(event.target);
+                let title = '';
+
+                formData.forEach((value,key) => {
+                    if(key == "showResultTitle"){
+                        title = value;
+                    }
+                    return true;
+                })
+
+                for(let i = 0;i<userData.length;i++){
+                    if(userData[i][0] == title){
+                        const resultContainer = document.createElement('div')
+                        resultContainer.id = 'resultContainer';
+
+                        const resultTitle = document.createElement('div');
+                        resultTitle.innerHTML = `설문조사 제목: ${title}`;
+                        resultTitle.id = 'resultTitle';
+                        displayResult.appendChild(resultTitle);
+
+                        for(let j = 1;j<userData[i].length;j++){
+                            const data = userData[i][j][1];
+                            const maxDataValue = Math.max(...data);
+
+                            const chartContainer = document.createElement('div');
+                            chartContainer.id = 'chartContainer';
+
+                            const chartTitle = document.createElement('div');
+                            chartTitle.innerHTML = `질문: ${userData[i][j][0]}`;
+                            chartTitle.id = 'chartTitle';
+                            chartContainer.appendChild(chartTitle);
+
+                            const chartBody = document.createElement('div');
+                            chartBody.id = 'chartBody';
+                            data.forEach((value,index) => {
+                                //막대요소 생성
+                                const bar = document.createElement('div');
+                                bar.classList.add('bar');
+                                const barHeight = `${(value / maxDataValue) * 100}%`;
+                                bar.style.setProperty('--bar-height', barHeight); // 애니메이션에 사용할 변수 설정
+                                bar.textContent = value;
+
+                                // 막대 아래 레이블 생성
+                                const label = document.createElement('div');
+                                label.classList.add('bar-label');
+                                if(index == 0){
+                                    label.textContent = `그렇다`;
+                                }else if(index == 1){
+                                    label.textContent = `보통이다`;
+                                }else{
+                                    label.textContent = `아니다`;
+                                }
+
+                                // 막대와 레이블을 함께 묶음
+                                const barContainer = document.createElement('div');
+                                barContainer.id = 'barContainer';
+                                barContainer.appendChild(bar);
+                                barContainer.appendChild(label);
+
+                                // chartContainer에 추가
+                                chartBody.appendChild(barContainer);
+                            })
+                            chartContainer.appendChild(chartBody);
+                            resultContainer.appendChild(chartContainer)
+                        }
+                        displayResult.appendChild(resultContainer);
+                    }
+                }
+            }
+        })
+
+        document.getElementById('schoolLogo').addEventListener('click',function(){
+            reset();
+            const easterEgg = document.getElementById('easterEgg');
+
+            const teamBox = document.createElement('div');
+            teamBox.id = 'teamBox';
+
+            const teamName = document.createElement('h1');
+            teamName.innerHTML = "팀명";
+            teamBox.appendChild(teamName);
+            easterEgg.appendChild(teamBox);
+
+            const memberBox = document.createElement('div');
+            memberBox.id = 'memberBox';
+
+            const yhs = document.createElement('div');
+            yhs.id = "yhs";
+            yhs.innerHTML = "양희승";
+
+            const jsj = document.createElement('div');
+            jsj.id = "jsj";
+            jsj.innerHTML = "제성준";
+
+            const jsb = document.createElement('div');
+            jsb.id = "jsb";
+            jsb.innerHTML = "정승빈";
+
+            const yjs = document.createElement('div');
+            yjs.id = "yjs";
+            yjs.innerHTML = "윤준수";
+            
+            memberBox.appendChild(yhs);
+            memberBox.appendChild(jsj);
+            memberBox.appendChild(jsb);
+            memberBox.appendChild(yjs);
+            easterEgg.appendChild(memberBox);
+        })
+    </script>
+
+
+    <style>
+        *{
+            margin: 0px;;
+        }
+        #container{
+            width: 100%;
+            height:100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: rgb(247, 246, 250);
+
+        }
+        #header{
+            width: 90%;
+            height: 200px;
+            background-color: white;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+        }
+        #body{
+            width: 90%;
+            height: 600px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+        #body_left{
+            width: 20%;
+            height: 600px;
+            background-color: white;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            margin-right: 10px  ;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #body_right{
+            width: 80%;
+            height: 600px;
+            background-color: white;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #body_left_header{
+            width: 100%;
+            height: 600px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #plus{
+            width: 85%;
+            height: 40px;
+            background-color: lightblue;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            border-radius: 20px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+        }
+        #plus:hover{
+            cursor: pointer;
+        }
+        #header_container{
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+        }
+        #header_title{
+            width: 80%;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            margin-top: 50px;
+        }
+        #schoolLogo{
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 10px;
+        }
+        #schoolLogo:hover{
+            cursor: pointer;
+        }
+        #imgContainer{
+            width: 100px;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 50px;
+        }
+        #questionTitle{
+            width: 85%;
+            height: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            background-color: lightblue;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            border: none;
+            text-align: center;
+        }
+        #questionTitle::placeholder{
+            color: black;
+        }
+        #makeSurvey_questionForm{
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #savedSurveyTitle{
+            width: 85%;
+            height: 40px;
+            background-color: lightcoral;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            border: none;
+        }
+        #savedSurveyTitle:hover{
+            cursor: pointer;
+        }
+        #savedSurveyList{
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #addQuestion{
+            margin-top: 20px;
+            width: 85%;
+            height: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            border: none;
+            background-color: lightcoral;
+        }
+        #addQuestion:hover{
+            cursor: pointer;
+        }
+        #addingQuestion{
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #makeSurvey{
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #makeSurvey_form{
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #inputContainer{
+            width: 85%;
+            height: 100px;
+            background-color: lightblue;
+            border: 1px solid black;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #question{
+            width: 85%;
+            height: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            border: none;
+            background-color: lightcoral;
+            text-align: center;
+        }
+        #question::placeholder{
+            color: black;
+        }
+        #surveyForm{
+            width: 85%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: lightblue;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            border: none;
+            margin-top: 10px;
+        }
+        #addedQuestion{
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #questionWrapper{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+        }
+        #saveSurveySubmit{
+            width: 85%;
+            height: 20px;
+            background-color: lightcoral;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            border: none;
+            margin-bottom: 5px;
+            margin-top: 10px;
+        }
+        #saveSurveySubmit:hover{
+            cursor: pointer;
+        }
+        #displaySurvey{
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #titleLabel{
+            width: 85%;
+            height: 25px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            border: none;
+            background-color: lightblue;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+        #displayQuestionForm{
+            width: 85%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            border: none;
+            background-color: lightblue;
+            margin-top: 10px;
+        }
+        #submitSurvey{
+            margin-top: 20px;
+            margin-bottom: 20px;
+            width: 85%;
+            height: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            border: none;
+            background-color: lightcoral;
+        }
+        #submitSurvey:hover{
+            cursor: pointer;
+        }
+        #easterEgg{
+            width: 85%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #teamBox{
+            width: 85%;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #memberBox{
+            width: 85%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            font-size: 25px;
+        }
+        #showResult{
+            margin-top: 20px;
+            margin-bottom: 20px;
+            width: 85%;
+            height: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            border: none;
+            background-color: lightcoral;
+        }
+        #showResult:hover{
+            cursor: pointer;
+        }
+        #resultForm{
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+        #chartBody {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            width: 300px;
+            height: 200px;
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+        @keyframes grow{
+            from{
+                height: 0;
+            }
+            to{
+                height: var(--bar-height);
+            }
+        }
+  
+        /* 각 막대 스타일 */
+        .bar {
+            width: 50px;
+            background-color: #4CAF50;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            animation: grow 1s ease-out forwards;
+        }
+        #barContainer{
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        /* 레이블 스타일 */
+        .bar-label {
+            margin-top: 5px;
+            text-align: center;
+        }
+        #resultContainer{
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3열로 구성, 각 열의 너비는 동일 */
+            grid-gap: 10px; /* 아이템 사이의 간격 */
+            padding: 10px;
+        }
+        #displayResult{
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #chartContainer{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #resultTitle{
+            width: 85%;
+            height: 40px;
+            background-color: lightcoral;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            border: none;
+        }
+        #chartTitle{
+            width: 85%;
+            height: 30px;
+            background-color: lightblue;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+            border-radius: 20px;
+            border: none;
+        }
+    </style>
+</body>
+</html>
